@@ -1,4 +1,4 @@
-# Glen Errand's Swing Memory Game
+# Glen Errands' Swing Memory Game
 
 This is a small experimental game written in Java/Swing.
 
