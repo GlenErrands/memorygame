@@ -1,4 +1,7 @@
-package java.awt.event;
+package io.github.glenerrands.memorygame;
+
+import java.awt.event.HierarchyBoundsListener;
+import java.awt.event.HierarchyEvent;
 
 /**
  * Helper interface to enable lambda expressions for ancestorResized events.

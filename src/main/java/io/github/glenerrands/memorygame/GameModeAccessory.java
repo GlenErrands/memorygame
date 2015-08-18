@@ -6,8 +6,6 @@ import static javax.swing.BoxLayout.*;
 import static javax.swing.JFileChooser.*;
 
 import java.awt.FlowLayout;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -26,8 +24,6 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +74,8 @@ public class GameModeAccessory extends JPanel implements PropertyChangeListener 
 		final JPanel numberOfPlayersPanel = new JPanel(new FlowLayout());
 		numberOfPlayersPanel.add(new JLabel("Number of players:"));
 		_numberOfPlayersControl = new JSpinner(new SpinnerNumberModel(1, 1, 20, 1));
-		_numberOfPlayersControl.getModel().addChangeListener(e -> setNumberOfPlayers((Integer) _numberOfPlayersControl.getValue()));
+		_numberOfPlayersControl.getModel()
+				.addChangeListener(e -> setNumberOfPlayers((Integer) _numberOfPlayersControl.getValue()));
 		numberOfPlayersPanel.add(_numberOfPlayersControl);
 		add(numberOfPlayersPanel);
 
