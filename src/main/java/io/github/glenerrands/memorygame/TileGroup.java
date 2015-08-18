@@ -1,7 +1,5 @@
 package io.github.glenerrands.memorygame;
 
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
@@ -28,12 +26,7 @@ public class TileGroup {
 		for (int i = 0; i < numberOfTiles; i++) {
 			final Tile tile = new Tile(this);
 			this.tiles.add(tile);
-			tile.addMouseListener(new MouseAdapter() {
-				@Override
-				public void mouseClicked(MouseEvent e) {
-					TileGroup.this.memoryGameWindow.tileClicked(tile);
-				}
-			});
+			tile.addMouseListener((MouseClickedListener) e -> TileGroup.this.memoryGameWindow.tileClicked(tile));
 		}
 	}
 

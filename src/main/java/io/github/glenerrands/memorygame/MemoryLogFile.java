@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.io.PrintWriter;
@@ -124,12 +123,8 @@ public class MemoryLogFile {
 				LOGGER.debug("file does not exist: {}", file.getAbsolutePath());
 			}
 
-			final String[] allFilenames = _workingDirectory.list(new FilenameFilter() {
-				@Override
-				public boolean accept(File dir, String name) {
-					return MemoryGameWindow.isFilenameAccepted(name);
-				}
-			});
+			final String[] allFilenames = _workingDirectory
+					.list((dir, name) -> MemoryGameWindow.isFilenameAccepted(name));
 			final int unratedCount = allFilenames.length - _ratings.size() + _ratingCounts.get(NOT_SHOWN_YET);
 			_ratingCounts.put(NOT_SHOWN_YET, unratedCount);
 		} finally {

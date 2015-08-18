@@ -8,8 +8,7 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
-import java.awt.event.HierarchyBoundsAdapter;
-import java.awt.event.HierarchyEvent;
+import java.awt.event.AncestorResizedListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FilenameFilter;
@@ -47,7 +46,8 @@ public class MemoryGameWindow extends JPanel implements Runnable {
 
 	private static final Random RANDOM = new Random();
 
-	private static final Set<String> ACCEPTED_EXTENSIONS = new HashSet<String>(Arrays.asList("jpg", "jpeg", "gif", "png"));
+	private static final Set<String> ACCEPTED_EXTENSIONS = new HashSet<String>(
+			Arrays.asList("jpg", "jpeg", "gif", "png"));
 
 	private int numberOfImages;
 
@@ -110,12 +110,7 @@ public class MemoryGameWindow extends JPanel implements Runnable {
 		this.horizontalTileSpacing = 5;
 		this.verticalTileSpacing = 5;
 
-		addHierarchyBoundsListener(new HierarchyBoundsAdapter() {
-			@Override
-			public void ancestorResized(HierarchyEvent e) {
-				handleResize();
-			}
-		});
+		addHierarchyBoundsListener((AncestorResizedListener) e -> handleResize());
 
 		fileChooser = new JFileChooser();
 		fileChooser.setFileSelectionMode(DIRECTORIES_ONLY);
@@ -138,11 +133,13 @@ public class MemoryGameWindow extends JPanel implements Runnable {
 		_gameModeAccessory.updateCheckboxLabels();
 		int returnVal = fileChooser.showOpenDialog(this);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
-			setupMemoryGameGui(fileChooser.getSelectedFile(), _gameModeAccessory.getNumberOfTileGroups(), _gameModeAccessory.getNumberOfPlayers());
+			setupMemoryGameGui(fileChooser.getSelectedFile(), _gameModeAccessory.getNumberOfTileGroups(),
+					_gameModeAccessory.getNumberOfPlayers());
 		}
 	}
 
-	private void setupMemoryGameGui(File imageDirectory, int numberOfTileGroups, int numberOfPlayers) throws IOException {
+	private void setupMemoryGameGui(File imageDirectory, int numberOfTileGroups, int numberOfPlayers)
+			throws IOException {
 		setupPlayers(numberOfPlayers);
 
 		currentDirectory = imageDirectory;
@@ -172,8 +169,10 @@ public class MemoryGameWindow extends JPanel implements Runnable {
 			}
 		} while (!done);
 
-		this.tileHeight = (getHeight() - ((this.verticalNumberOfTiles - 1) * this.verticalTileSpacing)) / this.verticalNumberOfTiles;
-		this.tileWidth = (getWidth() - ((this.horizontalNumberOfTiles - 1) * this.horizontalTileSpacing)) / this.horizontalNumberOfTiles;
+		this.tileHeight = (getHeight() - ((this.verticalNumberOfTiles - 1) * this.verticalTileSpacing))
+				/ this.verticalNumberOfTiles;
+		this.tileWidth = (getWidth() - ((this.horizontalNumberOfTiles - 1) * this.horizontalTileSpacing))
+				/ this.horizontalNumberOfTiles;
 
 		this.imageFiles = selectRandomImages(currentDirectory, getNumberOfImages());
 		tiles.clear();
@@ -232,8 +231,10 @@ public class MemoryGameWindow extends JPanel implements Runnable {
 		super.setSize(width, height);
 
 		if (!tiles.isEmpty()) {
-			this.tileHeight = (height - ((this.verticalNumberOfTiles - 1) * this.verticalTileSpacing)) / this.verticalNumberOfTiles;
-			this.tileWidth = (width - ((this.horizontalNumberOfTiles - 1) * this.horizontalTileSpacing)) / this.horizontalNumberOfTiles;
+			this.tileHeight = (height - ((this.verticalNumberOfTiles - 1) * this.verticalTileSpacing))
+					/ this.verticalNumberOfTiles;
+			this.tileWidth = (width - ((this.horizontalNumberOfTiles - 1) * this.horizontalTileSpacing))
+					/ this.horizontalNumberOfTiles;
 
 			final Iterator<Tile> tilesIterator = tiles.iterator();
 			for (int x = 0; tilesIterator.hasNext() && x < this.horizontalNumberOfTiles; x++) {
@@ -257,7 +258,7 @@ public class MemoryGameWindow extends JPanel implements Runnable {
 	}
 
 	private void uncoverTile(final Tile tile) {
-		Thread updateThread = null;
+		Runnable updateRunnable = null;
 		if (uncoveredTiles.size() < 2 && !tile.isFlipping() && !tile.isUncovered()) {
 			LOGGER.debug("less than two tiles uncovered");
 			uncoveredTiles.add(tile);
@@ -267,57 +268,52 @@ public class MemoryGameWindow extends JPanel implements Runnable {
 				final TileGroup tileGroup = tile.getTileGroup();
 				if (tileGroup.isCompletelyUncovered()) {
 					LOGGER.debug("matching tiles uncovered");
-					updateThread = new Thread() {
-						@Override
-						public void run() {
-							try {
-								sleep(1000);
-							} catch (InterruptedException e) {
-								LOGGER.error("interrupted", e);
-							}
-							uncoveredTiles.clear();
-							getCurrentPlayer().addUncoveredTileGroup(tileGroup);
-							for (Tile tileToRemove : tileGroup.getTiles()) {
-								remove(tileToRemove);
-							}
-							try {
-								imagePanel = createImagePanel(tileGroup);
-								add(imagePanel, 0);
-							} catch (IOException e) {
-								LOGGER.error("cannot display image", e);
-							}
-							validate();
-							repaint();
+					updateRunnable = () -> {
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException e) {
+							LOGGER.error("interrupted", e);
 						}
+						uncoveredTiles.clear();
+						getCurrentPlayer().addUncoveredTileGroup(tileGroup);
+						for (Tile tileToRemove : tileGroup.getTiles()) {
+							remove(tileToRemove);
+						}
+						try {
+							imagePanel = createImagePanel(tileGroup);
+							add(imagePanel, 0);
+						} catch (IOException e) {
+							LOGGER.error("cannot display image", e);
+						}
+						validate();
+						repaint();
 					};
 				} else {
 					LOGGER.debug("unmatching tiles uncovered");
 					nextPlayer();
-					updateThread = new Thread() {
-						@Override
-						public void run() {
-							try {
-								sleep(1000);
-							} catch (InterruptedException e) {
-								LOGGER.error("interrupted", e);
-							}
-							for (Tile uncoveredTile : uncoveredTiles) {
-								uncoveredTile.flip();
-							}
-							uncoveredTiles.clear();
-						};
+					updateRunnable = () -> {
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException e) {
+							LOGGER.error("interrupted", e);
+						}
+						for (Tile uncoveredTile : uncoveredTiles) {
+							uncoveredTile.flip();
+						}
+						uncoveredTiles.clear();
 					};
 				}
 			}
 		}
-		if (updateThread != null) {
-			updateThread.start();
+		if (updateRunnable != null) {
+			new Thread(updateRunnable).start();
 		}
 	}
 
 	private JPanel createImagePanel(final TileGroup tileGroup) throws IOException {
 		final JPanel imagePanel = new JPanel(new BorderLayout());
-		final JLabel displayImageLabel = new JLabel(getScaledImage(tileGroup.getImageFile(), getWidth() - 10, getHeight() - 10));
+		final JLabel displayImageLabel = new JLabel(
+				getScaledImage(tileGroup.getImageFile(), getWidth() - 10, getHeight() - 10));
 		displayImageLabel.setPreferredSize(new Dimension(getWidth() - 10, getHeight() - 10));
 		displayImageLabel.setMaximumSize(new Dimension(getWidth() - 10, getHeight() - 10));
 		imagePanel.add(displayImageLabel, BorderLayout.CENTER);
@@ -373,14 +369,11 @@ public class MemoryGameWindow extends JPanel implements Runnable {
 			for (MemoryPlayer player : _players) {
 				LOGGER.info(String.format("  %s", player));
 			}
-			SwingUtilities.invokeLater(new Thread() {
-				@Override
-				public void run() {
-					try {
-						createGui();
-					} catch (IOException e) {
-						LOGGER.error("could not create GUI", e);
-					}
+			SwingUtilities.invokeLater(() -> {
+				try {
+					createGui();
+				} catch (IOException e) {
+					LOGGER.error("could not create GUI", e);
 				}
 			});
 		}
@@ -401,7 +394,8 @@ public class MemoryGameWindow extends JPanel implements Runnable {
 			LOGGER.debug("Scaling image - scaled to: " + width + "x" + height);
 			return new ImageIcon(scaledInstance);
 		} else {
-			LOGGER.debug("Scaling image - using original size: " + bufferedImage.getWidth() + "x" + bufferedImage.getHeight());
+			LOGGER.debug("Scaling image - using original size: " + bufferedImage.getWidth() + "x"
+					+ bufferedImage.getHeight());
 			return new ImageIcon(imageFile.toURI().toURL());
 		}
 	}

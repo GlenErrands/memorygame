@@ -71,36 +71,20 @@ public class GameModeAccessory extends JPanel implements PropertyChangeListener 
 		_numberOfTileGroupsControl.setPaintTicks(true);
 		_numberOfTileGroupsControl.setPaintTrack(true);
 		_numberOfTileGroupsControl.setSnapToTicks(true);
-		_numberOfTileGroupsControl.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				updateNumberOfTileGroupsDisplay();
-			}
-
-		});
+		_numberOfTileGroupsControl.addChangeListener(e -> updateNumberOfTileGroupsDisplay());
 		add(_numberOfTileGroupsControl);
 		updateNumberOfTileGroupsDisplay();
 
 		final JPanel numberOfPlayersPanel = new JPanel(new FlowLayout());
 		numberOfPlayersPanel.add(new JLabel("Number of players:"));
 		_numberOfPlayersControl = new JSpinner(new SpinnerNumberModel(1, 1, 20, 1));
-		_numberOfPlayersControl.getModel().addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				setNumberOfPlayers((Integer) _numberOfPlayersControl.getValue());
-			}
-		});
+		_numberOfPlayersControl.getModel().addChangeListener(e -> setNumberOfPlayers((Integer) _numberOfPlayersControl.getValue()));
 		numberOfPlayersPanel.add(_numberOfPlayersControl);
 		add(numberOfPlayersPanel);
 
 		for (final Rating rating : Rating.values()) {
 			final JCheckBox checkbox = new JCheckBox(rating.name(), isRatingSelected(rating));
-			checkbox.addItemListener(new ItemListener() {
-				@Override
-				public void itemStateChanged(ItemEvent e) {
-					setRatingSelected(rating, e.getStateChange() == SELECTED);
-				}
-			});
+			checkbox.addItemListener(e -> setRatingSelected(rating, e.getStateChange() == SELECTED));
 			_checkboxes.put(rating, checkbox);
 			add(checkbox);
 		}
@@ -153,7 +137,8 @@ public class GameModeAccessory extends JPanel implements PropertyChangeListener 
 			final MemoryLogFile memoryLogFile = new MemoryLogFile(directory);
 			for (final Rating rating : Rating.values()) {
 				final JCheckBox checkbox = _checkboxes.get(rating);
-				checkbox.setText(MessageFormat.format("{0} ({1} files)", rating, memoryLogFile.getRatingCounts().get(rating)));
+				checkbox.setText(
+						MessageFormat.format("{0} ({1} files)", rating, memoryLogFile.getRatingCounts().get(rating)));
 			}
 		} catch (IOException e) {
 			LOGGER.error("could not update rating counts", e);

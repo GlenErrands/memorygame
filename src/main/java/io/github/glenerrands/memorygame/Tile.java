@@ -40,7 +40,8 @@ public class Tile extends JComponent {
 		final int y = 0;
 		if (turnFactor > 0) {
 			final BufferedImage image = getTileGroup().getImage();
-			final float scale = Math.min(((float) getWidth()) / image.getWidth(), ((float) getHeight()) / image.getHeight());
+			final float scale = Math.min(((float) getWidth()) / image.getWidth(),
+					((float) getHeight()) / image.getHeight());
 			final int x = Math.round((getWidth() / 2.0f) - (image.getWidth() * scale * turnFactor * 0.5f));
 			final AffineTransform translateInstance = AffineTransform.getTranslateInstance(x, y);
 			final AffineTransform scaleInstance = AffineTransform.getScaleInstance(turnFactor * scale, scale);
@@ -62,33 +63,31 @@ public class Tile extends JComponent {
 			setFlipping(true);
 			final boolean uncovered = isUncovered();
 			setUncovered(!uncovered);
-			new Thread() {
-				@Override
-				public void run() {
-					if (uncovered) {
-						LOGGER.debug("covering tile");
-						for (turnFactor = 1.0f; turnFactor > -1.0; turnFactor -= 0.1) {
-							try {
-								Thread.sleep(15);
-							} catch (InterruptedException e) {
-								LOGGER.error("interrupted", e);
-							}
-							repaint();
+			Thread t = new Thread((Runnable) () -> {
+				if (uncovered) {
+					LOGGER.debug("covering tile");
+					for (turnFactor = 1.0f; turnFactor > -1.0; turnFactor -= 0.1) {
+						try {
+							Thread.sleep(15);
+						} catch (InterruptedException e) {
+							LOGGER.error("interrupted", e);
 						}
-					} else {
-						LOGGER.debug("uncovering tile");
-						for (turnFactor = -1.0f; turnFactor < 1.0; turnFactor += 0.1) {
-							try {
-								Thread.sleep(15);
-							} catch (InterruptedException e) {
-								LOGGER.error("interrupted", e);
-							}
-							repaint();
-						}
+						repaint();
 					}
-					setFlipping(false);
-				};
-			}.start();
+				} else {
+					LOGGER.debug("uncovering tile");
+					for (turnFactor = -1.0f; turnFactor < 1.0; turnFactor += 0.1) {
+						try {
+							Thread.sleep(15);
+						} catch (InterruptedException e) {
+							LOGGER.error("interrupted", e);
+						}
+						repaint();
+					}
+				}
+				setFlipping(false);
+			});
+			t.start();
 		}
 	}
 
