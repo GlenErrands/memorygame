@@ -9,7 +9,7 @@ import java.awt.FlowLayout;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -137,7 +137,8 @@ public class GameModeAccessory extends JPanel implements PropertyChangeListener 
 				checkbox.setText(
 						MessageFormat.format("{0} ({1} files)", rating, memoryLogFile.getRatingCounts().get(rating)));
 			}
-		} catch (IOException e) {
+		} catch (MemoryGameException | FileNotFoundException e) {
+			// multi-catch demonstration
 			LOGGER.error("could not update rating counts", e);
 		}
 	}

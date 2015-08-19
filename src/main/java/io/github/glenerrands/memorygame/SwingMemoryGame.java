@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import java.io.IOException;
 
 import javax.swing.JFrame;
 import javax.swing.JWindow;
@@ -16,8 +15,7 @@ import javax.swing.SwingUtilities;
 public class SwingMemoryGame {
 
 	private enum ScreenMode {
-		FULLSCREEN,
-		WINDOW
+		FULLSCREEN, WINDOW
 	}
 
 	private ScreenMode screenMode = ScreenMode.WINDOW;
@@ -28,11 +26,7 @@ public class SwingMemoryGame {
 	public static void main(String[] args) {
 		final SwingMemoryGame swingGame = new SwingMemoryGame();
 		swingGame.configure(args);
-		try {
-			swingGame.run();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		swingGame.run();
 	}
 
 	public void configure(String[] args) {
@@ -45,8 +39,9 @@ public class SwingMemoryGame {
 		}
 	}
 
-	private void run() throws IOException {
-		final GraphicsDevice defaultScreenDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+	private void run() {
+		final GraphicsDevice defaultScreenDevice = GraphicsEnvironment.getLocalGraphicsEnvironment()
+				.getDefaultScreenDevice();
 		final MemoryGameWindow main = new MemoryGameWindow();
 		main.setBackground(Color.DARK_GRAY);
 		if (getScreenMode().equals(ScreenMode.FULLSCREEN) && defaultScreenDevice.isFullScreenSupported()) {

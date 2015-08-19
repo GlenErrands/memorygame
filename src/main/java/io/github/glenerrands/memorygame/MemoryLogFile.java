@@ -32,7 +32,7 @@ public class MemoryLogFile {
 
 	private final Map<Rating, Integer> _ratingCounts;
 
-	public MemoryLogFile(File workingDirectory) throws IOException {
+	public MemoryLogFile(File workingDirectory) throws FileNotFoundException, MemoryGameException {
 		_workingDirectory = workingDirectory;
 		_file = new File(workingDirectory, ".memoryLog");
 		_ratings = new HashMap<String, Rating>();
@@ -80,9 +80,7 @@ public class MemoryLogFile {
 			}
 		}
 		LOGGER.debug("saving to {}", file.getAbsolutePath());
-		PrintWriter saveFile = null;
-		try {
-			saveFile = new PrintWriter(new FileOutputStream(file));
+		try (PrintWriter saveFile = new PrintWriter(new FileOutputStream(file))) {
 			for (Map.Entry<String, Rating> entry : _ratings.entrySet()) {
 				saveFile.print(entry.getKey());
 				saveFile.print(':');
@@ -91,22 +89,16 @@ public class MemoryLogFile {
 			}
 		} catch (FileNotFoundException e) {
 			LOGGER.error("exception saving to " + file.getAbsoluteFile(), e);
-		} finally {
-			if (saveFile != null) {
-				saveFile.close();
-			}
 		}
 	}
 
-	public void load() throws IOException {
-		LineNumberReader loadFile = null;
+	public void load() throws FileNotFoundException, MemoryGameException {
 		_ratings.clear();
 		resetRatingCounts();
-		try {
-			final File file = getFile();
+		final File file = getFile();
+		try (LineNumberReader loadFile = new LineNumberReader(new FileReader(file))) {
 			if (file.exists()) {
 				LOGGER.debug("loading from {}", file.getAbsolutePath());
-				loadFile = new LineNumberReader(new FileReader(file));
 				for (String line = loadFile.readLine(); line != null; line = loadFile.readLine()) {
 					final String[] splitLine = line.split(":");
 					final String fileName = splitLine[0];
@@ -127,10 +119,9 @@ public class MemoryLogFile {
 					.list((dir, name) -> MemoryGameWindow.isFilenameAccepted(name));
 			final int unratedCount = allFilenames.length - _ratings.size() + _ratingCounts.get(NOT_SHOWN_YET);
 			_ratingCounts.put(NOT_SHOWN_YET, unratedCount);
-		} finally {
-			if (loadFile != null) {
-				loadFile.close();
-			}
+		} catch (IOException e) {
+			// wrap IOException in MemoryGameException to demonstrate multi-catch
+			throw new MemoryGameException("exception accessing memory log file", e);
 		}
 	}
 

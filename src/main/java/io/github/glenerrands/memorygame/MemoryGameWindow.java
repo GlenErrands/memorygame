@@ -10,6 +10,7 @@ import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -128,7 +129,7 @@ public class MemoryGameWindow extends JPanel implements Runnable {
 		fileChooser.setAccessory(_gameModeAccessory);
 	}
 
-	protected void createGui() throws IOException {
+	protected void createGui() throws FileNotFoundException, MemoryGameException {
 		_gameModeAccessory.updateCheckboxLabels();
 		int returnVal = fileChooser.showOpenDialog(this);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -138,7 +139,7 @@ public class MemoryGameWindow extends JPanel implements Runnable {
 	}
 
 	private void setupMemoryGameGui(File imageDirectory, int numberOfTileGroups, int numberOfPlayers)
-			throws IOException {
+			throws FileNotFoundException, MemoryGameException {
 		setupPlayers(numberOfPlayers);
 
 		currentDirectory = imageDirectory;
@@ -181,10 +182,9 @@ public class MemoryGameWindow extends JPanel implements Runnable {
 				final TileGroup tileGroup = new TileGroup(this, imageFile, ImageIO.read(imageFile.toURI().toURL()), 2);
 				tilePairs.add(tileGroup);
 				tiles.addAll(tileGroup.getTiles());
-			} catch (Exception e) {
-				LOGGER.error("could not create tile for " + imageFile.getName(), e);
-				getMemoryLogFile().setRating(imageFile.getName(), Rating.ERROR);
-				getMemoryLogFile().save();
+			} catch (IOException e) {
+				// wrap in MemoryGameException for multi-catch demonstration
+				throw new MemoryGameException("Exception reading image file", e);
 			}
 		}
 		Collections.shuffle(tiles);
@@ -371,7 +371,8 @@ public class MemoryGameWindow extends JPanel implements Runnable {
 			SwingUtilities.invokeLater(() -> {
 				try {
 					createGui();
-				} catch (IOException e) {
+				} catch (FileNotFoundException|MemoryGameException e) {
+					// multi-catch demonstration
 					LOGGER.error("could not create GUI", e);
 				}
 			});
@@ -399,7 +400,7 @@ public class MemoryGameWindow extends JPanel implements Runnable {
 		}
 	}
 
-	protected List<File> selectRandomImages(File imageDir, int numberOfImages) throws IOException {
+	protected List<File> selectRandomImages(File imageDir, int numberOfImages) {
 		final File[] imageFiles = imageDir.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
@@ -431,7 +432,8 @@ public class MemoryGameWindow extends JPanel implements Runnable {
 	public void run() {
 		try {
 			createGui();
-		} catch (IOException e) {
+		} catch (FileNotFoundException | MemoryGameException e) {
+			// multi-catch demonstration
 			LOGGER.error("could not create GUI", e);
 		}
 	}
