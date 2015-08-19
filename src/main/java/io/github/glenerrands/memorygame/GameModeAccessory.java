@@ -33,7 +33,8 @@ import org.slf4j.LoggerFactory;
  */
 public class GameModeAccessory extends JPanel implements PropertyChangeListener {
 
-	private static final long serialVersionUID = -4835145445717580557L;
+	// Using Java7 underscores in number literal:
+	private static final long serialVersionUID = -4_835_145_445_717_580_557L;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GameModeAccessory.class);
 
